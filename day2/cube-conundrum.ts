@@ -23,14 +23,29 @@ function exceedLimit(line: string): boolean {
   });
 }
 
+function setPower(line: string): number {
+  const cubeSets = line
+    .split(";")
+    .map((v) => v.matchAll(/(\d*) (green|blue|red)/g))
+    .map((v) => Array.from(v))
+    .reduce((prev, curr) => prev.concat(curr));
+
+  const set = new Map<string, number>();
+  cubeSets.forEach((v) => {
+    if (v.length < 3)
+      throw new Error(`Can parse this line properly: ${line}\n${v.length}`);
+    (set.get(v[2]) ?? 0) < parseInt(v[1]) && set.set(v[2], parseInt(v[1]));
+  });
+
+  return Array.from(set.entries()).reduce((prev, curr) => prev * curr[1], 1);
+}
+
 try {
   const data = await fs.readFile("./input.txt");
   const lines = data.toString().trim().split("\n");
   let result = 0;
-  lines.forEach((line, i) => {
-    if (!exceedLimit(line)) {
-      result += i + 1;
-    }
+  lines.forEach((line) => {
+    result += setPower(line);
   });
   console.log(result);
 } catch (err) {
